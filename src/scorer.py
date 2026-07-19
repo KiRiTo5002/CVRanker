@@ -1,4 +1,4 @@
-from src.schemas import Resume, JobDescription, MatchResult
+from src.schemas import JobDescription, MatchResult, Resume
 
 
 SKILL_WEIGHT = 50
@@ -7,25 +7,34 @@ EDUCATION_WEIGHT = 15
 CERTIFICATION_WEIGHT = 10
 
 
+
 def score_skills(
     resume_skills: list[str],
     required_skills: list[str],
 ) -> tuple[float, list[str], list[str]]:
     """
+    Compare resume skills against required job skills.
+
     Returns:
         (
-            skill_score,
+            skills_score,
             matched_required_skills,
-            missing_required_skills
+            missing_required_skills,
         )
     """
 
-    
     if not required_skills:
         return 100.0, [], []
 
-    resume_set = {skill.lower().strip() for skill in resume_skills}
-    required_set = {skill.lower().strip() for skill in required_skills}
+    resume_set = {
+        skill.lower().strip()
+        for skill in resume_skills
+    }
+
+    required_set = {
+        skill.lower().strip()
+        for skill in required_skills
+    }
 
     matched = sorted(resume_set & required_set)
     missing = sorted(required_set - resume_set)
@@ -39,17 +48,22 @@ def score_experience(
     resume_years: float,
     minimum_years: float | None,
 ) -> float:
+    """Score the candidate's professional experience."""
 
-    if minimum_years is None or minimum_years == 0:
+    if minimum_years in (None, 0):
         return 100.0
 
-    return min((resume_years / minimum_years) * 100, 100.0)
+    return min(
+        (resume_years / minimum_years) * 100,
+        100.0,
+    )
 
 
 def score_education(
     resume_education: list[str],
     required_education: list[str],
 ) -> float:
+    """Score education requirements."""
 
     if not required_education:
         return 100.0
@@ -67,22 +81,35 @@ def score_certifications(
     resume_certifications: list[str],
     required_certifications: list[str],
 ) -> float:
+    """Score certification requirements."""
 
     if not required_certifications:
         return 100.0
 
-    resume_set = {cert.lower().strip() for cert in resume_certifications}
-    required_set = {cert.lower().strip() for cert in required_certifications}
+    resume_set = {
+        cert.lower().strip()
+        for cert in resume_certifications
+    }
+
+    required_set = {
+        cert.lower().strip()
+        for cert in required_certifications
+    }
 
     matched = resume_set & required_set
 
     return (len(matched) / len(required_set)) * 100
 
 
+
 def score_candidate(
     resume: Resume,
     job_description: JobDescription,
 ) -> MatchResult:
+    """
+    Calculate an overall compatibility score between a
+    candidate's resume and a job description.
+    """
 
     (
         skills_score,

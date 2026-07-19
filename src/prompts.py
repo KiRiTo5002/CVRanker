@@ -1,25 +1,43 @@
-def build_resume_prompt(text: str, schema: dict) -> str:
-    return f"""
-You are an expert resume parser working for a recruitment company.
-
-## Task
-Extract structured information from the resume and return a valid JSON object that follows the provided schema exactly.
-
+COMMON_RULES = """
 ## Rules
-- Do not guess or infer information that is not explicitly present in the resume.
+- Do not guess or infer information that is not explicitly present.
 - If a field is missing, return null for single-value fields or an empty list for list fields.
 - Do not include fields that are not defined in the provided schema.
-- Return only valid JSON. Do not include explanations, markdown, or additional text.
-- Follow the schema exactly.
+- Return only valid JSON.
+- Do not include explanations, markdown, or additional text.
+- Follow the provided schema exactly.
+"""
 
-## Experience Calculation
-Calculate the candidate's total professional experience as a decimal number of years.
-Include internships, apprenticeships, and full-time professional roles.
 
+EXPERIENCE_EXAMPLES = """
 Examples:
 - 6 months → 0.5
 - 1 year 3 months → 1.25
 - 2 years 6 months → 2.5
+"""
+
+
+def build_resume_prompt(text: str, schema: dict) -> str:
+    """Build the prompt used to extract structured information from a resume."""
+
+    return f"""
+You are an expert resume parser working for a recruitment company.
+
+## Task
+Extract structured information from the candidate's resume.
+
+{COMMON_RULES}
+
+## Experience Calculation
+Calculate the candidate's total professional experience as a decimal number of years.
+
+Include:
+- Full-time employment
+- Part-time professional employment
+- Internships
+- Apprenticeships
+
+{EXPERIENCE_EXAMPLES}
 
 ## Resume
 {text}
@@ -30,26 +48,20 @@ Examples:
 
 
 def build_jd_prompt(text: str, schema: dict) -> str:
+    """Build the prompt used to extract structured information from a job description."""
+
     return f"""
 You are an expert job description parser working for a recruitment company.
 
 ## Task
-Extract structured information from the job description and return a valid JSON object that follows the provided schema exactly.
+Extract structured information from the job description.
 
-## Rules
-- Do not guess or infer information that is not explicitly present in the job description.
-- If a field is missing, return null for single-value fields or an empty list for list fields.
-- Do not include fields that are not defined in the provided schema.
-- Return only valid JSON. Do not include explanations, markdown, or additional text.
-- Follow the schema exactly.
+{COMMON_RULES}
 
 ## Experience Extraction
 Extract the minimum required professional experience as a decimal number of years.
 
-Examples:
-- 6 months → 0.5
-- 1 year 3 months → 1.25
-- 2 years 6 months → 2.5
+{EXPERIENCE_EXAMPLES}
 
 ## Job Description
 {text}

@@ -6,7 +6,6 @@ from src.scorer import score_candidate
 from src.ranker import rank_candidates
 
 
-# ---------------- Page Configuration ---------------- #
 
 st.set_page_config(
     page_title="CVRanker",
@@ -15,7 +14,6 @@ st.set_page_config(
 )
 
 
-# ---------------- Helper Functions ---------------- #
 
 def render_header():
     st.title("📄 CVRanker")
@@ -133,7 +131,6 @@ def render_candidate_card(rank, resume, match):
                     st.write("None")
 
 
-# ---------------- Main Application ---------------- #
 
 render_header()
 
