@@ -1,39 +1,53 @@
 import os
-from pathlib import Path
+
 from dotenv import load_dotenv
 from groq import Groq
-from src.prompts import prompt
-from src.schemas import Resume
-print("running app")
+
+from src.prompts import build_resume_prompt, build_jd_prompt
+from src.schemas import Resume, JobDescription
+
 load_dotenv()
 
-my_schema = Resume.model_json_schema()
+api_key = os.getenv("GROQ_API_KEY")
+if not api_key:
+    raise ValueError("GROQ_API_KEY environment variable is not set.")
 
-response_format = {"type": "json_object"}
+client = Groq(api_key=api_key)
 
-my_api_key = os.getenv("GROQ_API_KEY")
-if not my_api_key:
-    raise ValueError("GROQ_API_KEY environment is not set")
+MODEL = "llama-3.3-70b-versatile"
+RESPONSE_FORMAT = {"type": "json_object"}
 
-client = Groq(api_key=my_api_key)
-
-model = "llama-3.3-70b-versatile"
+resume_schema = Resume.model_json_schema()
+jd_schema = JobDescription.model_json_schema()
 
 
-def extract_resume(text: str) -> object:
+def extract_resume(text: str) -> Resume:
+    """Extract structured information from a resume."""
 
-    print("extracting resume")
-
-    my_prompt = prompt(text, my_schema)
-
-    message = [{"role": "user", "content": my_prompt}]
+    prompt = build_resume_prompt(text, resume_schema)
 
     response = client.chat.completions.create(
-        model=model, messages=message, response_format=response_format
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        response_format=RESPONSE_FORMAT,
     )
 
     json_text = response.choices[0].message.content
 
-    resume_json = Resume.model_validate_json(json_text)
+    return Resume.model_validate_json(json_text)
 
-    return resume_json
+
+def extract_jd(text: str) -> JobDescription:
+    """Extract structured information from a job description."""
+
+    prompt = build_jd_prompt(text, jd_schema)
+
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        response_format=RESPONSE_FORMAT,
+    )
+
+    json_text = response.choices[0].message.content
+
+    return JobDescription.model_validate_json(json_text)

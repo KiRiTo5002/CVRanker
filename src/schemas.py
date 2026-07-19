@@ -1,14 +1,33 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-class Resume(BaseModel): 
-    name : str
-    email: str |None = None
-    linkedin: str |None = None
-    phone_number: str |None = None
-    skills: list[str]
-    work_experience: list[str]
-    overview: str |None = None
-    projects: list[str]
-    education: list[str]
-    certifications: list[str]
+
+class Resume(BaseModel):
+    """Structured representation of a candidate's resume."""
+
+    name: str
+    email: str | None = None
+    linkedin: str | None = None
+    phone_number: str | None = None
+    overview: str | None = None
+
+    skills: list[str] = Field(default_factory=list)
+    work_experience: list[str] = Field(default_factory=list)
+    projects: list[str] = Field(default_factory=list)
+    education: list[str] = Field(default_factory=list)
+    certifications: list[str] = Field(default_factory=list)
+
     years_of_experience: float
+
+
+class JobDescription(BaseModel):
+    """Structured representation of a job description."""
+
+    required_skills: list[str] = Field(default_factory=list)
+    preferred_skills: list[str] = Field(default_factory=list)
+
+    required_education: list[str] = Field(default_factory=list)
+    required_certifications: list[str] = Field(default_factory=list)
+
+    minimum_years_of_experience: float | None = None
+
+    job_summary: str | None = None
