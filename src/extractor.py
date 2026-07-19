@@ -1,4 +1,5 @@
 import os
+import streamlit as st
 
 from dotenv import load_dotenv
 from groq import Groq
@@ -16,7 +17,7 @@ from src.schemas import (
 
 load_dotenv()
 
-api_key = os.getenv("GROQ_API_KEY")
+api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
 
 if not api_key:
     raise ValueError("GROQ_API_KEY environment variable is not set.")
