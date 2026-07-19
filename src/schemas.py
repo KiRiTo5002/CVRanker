@@ -31,3 +31,17 @@ class JobDescription(BaseModel):
     minimum_years_of_experience: float | None = None
 
     job_summary: str | None = None
+
+
+class MatchResult(BaseModel):
+    """Structured representation of how well a candidate matches a job description."""
+
+    overall_score: float
+
+    skills_score: float
+    experience_score: float
+    education_score: float
+    certification_score: float
+
+    matched_required_skills: list[str] = Field(default_factory=list)
+    missing_required_skills: list[str] = Field(default_factory=list)
