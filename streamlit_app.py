@@ -1,11 +1,9 @@
 import streamlit as st
 
+from src.extractor import extract_jd, extract_resume
 from src.parser import extract_text_from_pdf
-from src.extractor import extract_resume, extract_jd
-from src.scorer import score_candidate
 from src.ranker import rank_candidates
-
-
+from src.scorer import score_candidate
 
 st.set_page_config(
     page_title="CVRanker",
@@ -14,12 +12,9 @@ st.set_page_config(
 )
 
 
-
-def render_header():
+def render_header() -> None:
     st.title("📄 CVRanker")
-    st.caption(
-        "AI-powered Resume Ranking using LLMs, Pydantic and Rule-based Scoring"
-    )
+    st.caption("AI-powered Resume Ranking using LLMs, Pydantic and Rule-based Scoring")
 
 
 def render_upload_section():
@@ -28,10 +23,34 @@ def render_upload_section():
 
         st.subheader("📂 Upload Documents")
 
-        job_description = st.file_uploader(
-            "Job Description",
-            type=["pdf"],
+        tab1, tab2 = st.tabs(
+            [
+                "📄 Upload PDF",
+                "✍️ Paste Job Description",
+            ]
         )
+
+        with tab1:
+
+            job_file = st.file_uploader(
+                "Job Description PDF",
+                type=["pdf"],
+            )
+
+            jd_text = ""
+
+        with tab2:
+
+            jd_text = st.text_area(
+                "Paste Job Description",
+                height=250,
+                placeholder="Paste the complete job description here...",
+            )
+
+            if jd_text:
+                st.caption(f"{len(jd_text):,} characters")
+
+            job_file = None
 
         resumes = st.file_uploader(
             "Candidate Resumes",
@@ -41,30 +60,40 @@ def render_upload_section():
 
         st.divider()
 
-        left, center, right = st.columns([2, 1, 2])
+        _, center, _ = st.columns([2, 1, 2])
 
         with center:
+
             run = st.button(
                 "🚀 Rank Candidates",
                 use_container_width=True,
             )
 
-    return job_description, resumes, run
+    return job_file, jd_text, resumes, run
 
 
-def render_uploaded_files(job_file, resumes):
+def render_uploaded_files(
+    job_file,
+    jd_text,
+    resumes,
+):
 
     if job_file:
 
-        st.success(f"Job Description: **{job_file.name}**")
+        st.success(f"✅ Uploaded Job Description: **{job_file.name}**")
+
+    elif jd_text.strip():
+
+        st.success("✅ Job Description pasted successfully.")
 
     if resumes:
 
-        st.info(f"Uploaded **{len(resumes)}** resume(s)")
+        st.info(f"📂 Uploaded **{len(resumes)}** resume(s)")
 
         with st.expander("View Uploaded Resumes"):
 
             for file in resumes:
+
                 st.write(f"• {file.name}")
 
 
@@ -98,8 +127,11 @@ def render_candidate_card(rank, resume, match):
         score1, score2, score3, score4 = st.columns(4)
 
         score1.metric("Skills", f"{match.skills_score:.0f}%")
+
         score2.metric("Experience", f"{match.experience_score:.0f}%")
+
         score3.metric("Education", f"{match.education_score:.0f}%")
+
         score4.metric("Certificates", f"{match.certification_score:.0f}%")
 
         with st.expander("View Match Details"):
@@ -113,9 +145,11 @@ def render_candidate_card(rank, resume, match):
                 if match.matched_required_skills:
 
                     for skill in match.matched_required_skills:
+
                         st.write(f"• {skill}")
 
                 else:
+
                     st.write("None")
 
             with right:
@@ -125,37 +159,52 @@ def render_candidate_card(rank, resume, match):
                 if match.missing_required_skills:
 
                     for skill in match.missing_required_skills:
+
                         st.write(f"• {skill}")
 
                 else:
+
                     st.write("None")
 
 
+def main():
 
-render_header()
+    render_header()
 
-job_file, resume_files, run = render_upload_section()
+    job_file, jd_text, resume_files, run = render_upload_section()
 
-render_uploaded_files(job_file, resume_files)
+    render_uploaded_files(
+        job_file,
+        jd_text,
+        resume_files,
+    )
 
+    if not run:
+        return
 
-if run:
+    if job_file is None and not jd_text.strip():
 
-    if job_file is None:
+        st.error("Please upload a Job Description PDF or paste a Job Description.")
 
-        st.error("Please upload a Job Description.")
-        st.stop()
+        return
 
     if not resume_files:
 
         st.error("Please upload at least one Resume.")
-        st.stop()
 
-    with st.spinner("Ranking Candidates..."):
+        return
 
-        jd_text = extract_text_from_pdf(job_file)
+    with st.spinner("Analyzing resumes with AI..."):
 
-        job_description = extract_jd(jd_text)
+        if job_file:
+
+            job_description_text = extract_text_from_pdf(job_file)
+
+        else:
+
+            job_description_text = jd_text
+
+        job_description = extract_jd(job_description_text)
 
         candidates = []
 
@@ -181,9 +230,9 @@ if run:
 
             progress.progress((index + 1) / len(resume_files))
 
-        ranked = rank_candidates(candidates)
+        progress.empty()
 
-    progress.empty()
+    ranked = rank_candidates(candidates)
 
     st.divider()
 
@@ -199,3 +248,7 @@ if run:
             resume,
             match,
         )
+
+
+if __name__ == "__main__":
+    main()
