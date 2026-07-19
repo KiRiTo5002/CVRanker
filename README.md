@@ -3,6 +3,9 @@
 An AI-powered resume ranking application that extracts structured information from resumes and job descriptions using Large Language Models (LLMs), validates the extracted data with Pydantic, scores candidates using a transparent rule-based engine, and ranks applicants based on their suitability for a role.
 
 ---
+## 🚀 Live Demo
+
+https://your-app-name.streamlit.app
 
 ## Application Preview
 
