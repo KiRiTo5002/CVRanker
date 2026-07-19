@@ -23,6 +23,9 @@ def render_upload_section():
 
         st.subheader("📂 Upload Documents")
 
+        job_file = None
+        jd_text = ""
+
         tab1, tab2 = st.tabs(
             [
                 "📄 Upload PDF",
@@ -32,25 +35,28 @@ def render_upload_section():
 
         with tab1:
 
-            job_file = st.file_uploader(
+            uploaded_pdf = st.file_uploader(
                 "Job Description PDF",
                 type=["pdf"],
+                key="jd_pdf",
             )
 
-            jd_text = ""
+            if uploaded_pdf is not None:
+                job_file = uploaded_pdf
 
         with tab2:
 
-            jd_text = st.text_area(
+            pasted_text = st.text_area(
                 "Paste Job Description",
                 height=250,
                 placeholder="Paste the complete job description here...",
+                key="jd_text",
             )
 
-            if jd_text:
-                st.caption(f"{len(jd_text):,} characters")
+            if pasted_text.strip():
+                jd_text = pasted_text
 
-            job_file = None
+                st.caption(f"{len(jd_text):,} characters")
 
         resumes = st.file_uploader(
             "Candidate Resumes",
@@ -70,7 +76,6 @@ def render_upload_section():
             )
 
     return job_file, jd_text, resumes, run
-
 
 def render_uploaded_files(
     job_file,
