@@ -1,5 +1,21 @@
+# Environment
 .env
 *.env
+
+# Virtual environments
 .venv/
 venv/
+
+# Python
 __pycache__/
+*.pyc
+
+# Streamlit
+.streamlit/
+
+# IDE
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
